@@ -29,7 +29,8 @@ router.post('/register', async (req, res) => {
     const payload = {
       user: {
         id: user.id,
-        role: user.role
+        role: user.role,
+        name: user.name
       }
     };
 
@@ -39,7 +40,7 @@ router.post('/register', async (req, res) => {
       { expiresIn: 360000 },
       (err, token) => {
         if (err) throw err;
-        res.json({ token });
+        res.json({ token, user: user.name });
       }
     );
   } catch (err) {
