@@ -11,7 +11,7 @@ router.post('/register', async (req, res) => {
   try {
     let user = await User.findOne({ email });
     if (user) {
-      return res.status(400).json({ msg: 'User already exists' });
+      return res.status(400).json({ msg: 'Este e-mail já está registrado. Por favor, utilize outro ou tente fazer login.' });
     }
 
     user = new User({
@@ -56,12 +56,12 @@ router.post('/login', async (req, res) => {
   try {
     let user = await User.findOne({ email });
     if (!user) {
-      return res.status(400).json({ msg: 'Invalid Credentials' });
+      return res.status(400).json({ msg: 'Credenciais inválidas. Por favor, verifique suas informações e tente novamente.' });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(400).json({ msg: 'Invalid Credentials' });
+      return res.status(400).json({ msg: 'Credenciais inválidas. Por favor, verifique suas informações e tente novamente.' });
     }
 
     const payload = {
