@@ -134,6 +134,25 @@ router.delete('/:id', authMiddleware, async (req, res) => {
     res.status(500).send('Server error');
   }
 });
+// Obtener producto por ID
+router.get('/:id', authMiddleware, async (req, res) => {
+  try {
+    const product = await Product.findOne({
+      _id: req.params.id,
+      user: req.user.id, // Verifica que el producto pertenece al usuario
+    });
+
+    if (!product) {
+      return res.status(404).json({ msg: 'Product not found' });
+    }
+
+    res.json(product);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server error');
+  }
+});
+
 
 module.exports = router;
 
