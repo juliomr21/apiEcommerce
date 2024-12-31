@@ -153,6 +153,64 @@ router.get('/:id', authMiddleware, async (req, res) => {
   }
 });
 
+// Editar un producto por id
+router.put('/:id', authMiddleware, async (req, res) => {
+  const {
+    name,
+    description,
+    price,
+    price_sale,
+    type_product,
+    type_stock,
+    stock,
+    category,
+    code_sku,
+    code_bar,
+    whidth,
+    height,
+    weight,
+    length,
+  } = req.body;
+
+  try {
+    let product = await Product.findOne({
+      _id: req.params.id,
+      user: req.user.id, // Verifica que el producto pertenece al usuario
+    });
+
+    if (!product) {
+      return res.status(404).json({ msg: 'Product not found' });
+    }
+
+    product = await Product.findByIdAndUpdate(
+      req.params.id,
+      {
+        $set: {
+          name,
+          description,
+          price,
+          price_sale,
+          type_product,
+          type_stock,
+          stock,
+          category,
+          code_sku,
+          code_bar,
+          whidth,
+          height,
+          weight,
+          length,
+        },
+      },
+      { new: true }
+    );
+
+    res.json(product);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server error');
+  }
+});
 
 module.exports = router;
 
