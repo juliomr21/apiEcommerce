@@ -12,7 +12,7 @@ router.get('/summary', async (req, res) => {
     lastWeek.setDate(lastWeek.getDate() - 7);
 
     // Consultas simultáneas
-    const [dailySummary, weeklyOrders, userProducts] = await Promise.all([
+    const [dailySummary, weeklyOrders] = await Promise.all([
       // Resumen diario
       Order.aggregate([
         { $match: { date: { $gte: startOfDay } } },
@@ -39,45 +39,34 @@ router.get('/summary', async (req, res) => {
         { $match: { date: { $gte: lastWeek } } },
         {
           $group: {
-            _id: null,
-            totalOrders: { $sum: 1 },
-            totalSpending: { $sum: "$valor" },
+            _id: { $dateToString: { format: "%Y-%m-%d", date: "$date" } },
+            orders: { $sum: 1 },
+            spending: { $sum: "$valor" },
           },
         },
-        {
-          $project: {
-            _id: 0,
-            totalOrders: 1,
-            totalSpending: 1,
-          },
-        },
-      ]),
-
-      // Productos de un usuario de manera general
-      Order.aggregate([
-        {
-          $group: {
-            _id: "$user",
-            differentProducts: { $addToSet: "$products.product" }, // IDs únicos de productos por usuario
-          },
-        },
-        {
-          $project: {
-            _id: 0,
-            user: "$_id",
-            differentProducts: { $size: "$differentProducts" }, // Conteo de productos únicos por usuario
-          },
-        },
+        { $sort: { _id: 1 } },
       ]),
     ]);
 
-    res.json({
-      dailySummary: dailySummary[0] || {},
-      weeklyOrders: weeklyOrders[0] || {},
-      userProducts,
+    // Formato del resumen diario
+    const dailyData = dailySummary[0] || {
+      differentProducts: 0,
+      totalOrders: 0,
+      totalSpending: 0,
+    };
+
+    // Respuesta JSON
+    res.status(200).json({
+      today: {
+        differentProducts: dailyData.differentProducts,
+        totalOrders: dailyData.totalOrders,
+        totalSpending: dailyData.totalSpending,
+      },
+      last7Days: weeklyOrders,
     });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error("Error en el endpoint /summary:", error);
+    res.status(500).json({ message: "Error al obtener el resumen", error });
   }
 });
 
