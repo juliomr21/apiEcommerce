@@ -10,7 +10,8 @@ const orderSchema = new mongoose.Schema({
     }
   ],
   total: { type: Number, required: true },
-  date: { type: Date, default: Date.now }
+  date: { type: Date, default: Date.now },
+  valor: { type: Number, required: true }
 });
 
 module.exports = mongoose.model('Order', orderSchema);

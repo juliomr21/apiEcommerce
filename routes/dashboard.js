@@ -21,7 +21,7 @@ router.get('/summary', async (req, res) => {
             _id: null,
             differentProducts: { $addToSet: "$products.product" }, // IDs únicos de productos
             totalOrders: { $sum: 1 },
-            totalSpending: { $sum: "$gastoTotal" },
+            totalSpending: { $sum: "$valor" },
           },
         },
         {
@@ -41,7 +41,7 @@ router.get('/summary', async (req, res) => {
           $group: {
             _id: { $dateToString: { format: "%Y-%m-%d", date: "$date" } },
             orders: { $sum: 1 },
-            spending: { $sum: "$gastoTotal" },
+            spending: { $sum: "$valor" },
           },
         },
         { $sort: { _id: 1 } },
