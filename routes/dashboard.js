@@ -28,8 +28,8 @@ router.get('/summary', async (req, res) => {
           $project: {
             _id: 0,
             differentProducts: { $size: "$differentProducts" }, // Conteo de productos únicos
-            totalOrders: 0,
-            totalSpending: 0,
+            totalOrders: 1,
+            totalSpending: 1,
           },
         },
       ]),
