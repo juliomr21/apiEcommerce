@@ -84,7 +84,8 @@ router.post('/', auth, async (req, res) => {
       user: req.user.id,
       client,
       products,
-      total
+      total,
+      valor
     });
 
     const order = await newOrder.save();
