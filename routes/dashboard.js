@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Order = require('../models/Orders');
+const Product = require('../models/Product');
 
 // Endpoint para obtener el resumen del dashboard
 router.get('/summary', async (req, res) => {
@@ -12,14 +13,13 @@ router.get('/summary', async (req, res) => {
     lastWeek.setDate(lastWeek.getDate() - 7);
 
     // Consultas simultáneas
-    const [dailySummary, weeklyOrders] = await Promise.all([
+    const [dailySummary, weeklyOrders, totalProducts] = await Promise.all([
       // Resumen diario
       Order.aggregate([
         { $match: { date: { $gte: startOfDay } } },
         {
           $group: {
             _id: null,
-            differentProducts: { $addToSet: "$products.product" }, // IDs únicos de productos
             totalOrders: { $sum: 1 },
             totalSpending: { $sum: "$valor" },
           },
@@ -27,7 +27,6 @@ router.get('/summary', async (req, res) => {
         {
           $project: {
             _id: 0,
-            differentProducts: { $size: "$differentProducts" }, // Conteo de productos únicos
             totalOrders: 1,
             totalSpending: 1,
           },
@@ -46,11 +45,13 @@ router.get('/summary', async (req, res) => {
         },
         { $sort: { _id: 1 } },
       ]),
+
+      // Total de productos registrados por el usuario
+      Product.countDocuments({ user: req.user.id }),
     ]);
 
     // Formato del resumen diario
     const dailyData = dailySummary[0] || {
-      differentProducts: 0,
       totalOrders: 0,
       totalSpending: 0,
     };
@@ -58,7 +59,7 @@ router.get('/summary', async (req, res) => {
     // Respuesta JSON
     res.status(200).json({
       today: {
-        differentProducts: dailyData.differentProducts,
+        differentProducts: totalProducts, // Total de productos registrados
         totalOrders: dailyData.totalOrders,
         totalSpending: dailyData.totalSpending,
       },
