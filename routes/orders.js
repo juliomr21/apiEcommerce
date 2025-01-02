@@ -48,7 +48,7 @@ router.get('/:id', auth, async (req, res) => {
 // @desc    Crear un nuevo pedido
 // @access  Privado
 router.post('/', auth, async (req, res) => {
-  const { client, products, total } = req.body;
+  const { client, products, total,valor } = req.body;
 
   // Validación básica
   if (!client || !products || !total) {
@@ -88,6 +88,14 @@ router.post('/', auth, async (req, res) => {
     });
 
     const order = await newOrder.save();
+    await Client.findByIdAndUpdate(
+      client,
+      {
+        $inc: { pedidos: 1, gastoTotal: valor }, // Incrementa pedidos y suma al gasto total
+      },
+      { new: true }
+    );
+
     res.json(order);
   } catch (err) {
     console.error(err.message);
