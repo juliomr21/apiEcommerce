@@ -1,6 +1,6 @@
 // routes/orders.js
 const express = require('express');
-const Order = require('../models/Order');
+const Order = require('../models/Orders');
 const Client = require('../models/Client');
 const Product = require('../models/Product');
 const auth = require('../middleware/auth');
