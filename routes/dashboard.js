@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const Order = require('../models/Orders');
-const Product = require('../models/Product');
 
 // Endpoint para obtener el resumen del dashboard
 router.get('/summary', async (req, res) => {
@@ -12,14 +11,8 @@ router.get('/summary', async (req, res) => {
     const lastWeek = new Date(startOfDay);
     lastWeek.setDate(lastWeek.getDate() - 7);
 
-    // ID del usuario (puedes obtenerlo del token de autenticación o parámetro)
-    const userId = req.user.id; // Ajusta según tu autenticación
-
     // Consultas simultáneas
-    const [userProductsCount, dailySummary, weeklyOrders] = await Promise.all([
-      // Conteo de productos registrados por el usuario
-      Product.countDocuments({ user: userId }),
-
+    const [dailySummary, weeklyOrders] = await Promise.all([
       // Resumen diario
       Order.aggregate([
         { $match: { date: { $gte: startOfDay } } },
@@ -28,15 +21,15 @@ router.get('/summary', async (req, res) => {
             _id: null,
             differentProducts: { $addToSet: "$products.product" }, // IDs únicos de productos
             totalOrders: { $sum: 1 },
-            totalSpending: { $sum: "$total" },
+            totalSpending: { $sum: "$gastoTotal" },
           },
         },
         {
           $project: {
             _id: 0,
             differentProducts: { $size: "$differentProducts" }, // Conteo de productos únicos
-            totalOrders: 1,
-            totalSpending: 1,
+            totalOrders: 0,
+            totalSpending: 0,
           },
         },
       ]),
@@ -48,7 +41,7 @@ router.get('/summary', async (req, res) => {
           $group: {
             _id: { $dateToString: { format: "%Y-%m-%d", date: "$date" } },
             orders: { $sum: 1 },
-            spending: { $sum: "$total" },
+            spending: { $sum: "$gastoTotal" },
           },
         },
         { $sort: { _id: 1 } },
@@ -64,7 +57,6 @@ router.get('/summary', async (req, res) => {
 
     // Respuesta JSON
     res.status(200).json({
-      productsRegistered: userProductsCount,
       today: {
         differentProducts: dailyData.differentProducts,
         totalOrders: dailyData.totalOrders,
