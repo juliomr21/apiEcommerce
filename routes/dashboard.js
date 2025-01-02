@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const Order = require('../models/Order');
+const Order = require('../models/Orders');
 
 // Endpoint para obtener el resumen del dashboard
 router.get('/summary', async (req, res) => {
