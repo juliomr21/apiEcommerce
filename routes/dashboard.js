@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Order = require('../models/Orders');
+const Product = require('../models/Products');
 
 // Endpoint para obtener el resumen del dashboard
 router.get('/summary', async (req, res) => {
@@ -11,8 +12,14 @@ router.get('/summary', async (req, res) => {
     const lastWeek = new Date(startOfDay);
     lastWeek.setDate(lastWeek.getDate() - 7);
 
+    // ID del usuario (puedes obtenerlo del token de autenticación o parámetro)
+    const userId = req.user.id; // Ajusta según tu autenticación
+
     // Consultas simultáneas
-    const [dailySummary, weeklyOrders] = await Promise.all([
+    const [userProductsCount, dailySummary, weeklyOrders] = await Promise.all([
+      // Conteo de productos registrados por el usuario
+      Product.countDocuments({ user: userId }),
+
       // Resumen diario
       Order.aggregate([
         { $match: { date: { $gte: startOfDay } } },
@@ -57,6 +64,7 @@ router.get('/summary', async (req, res) => {
 
     // Respuesta JSON
     res.status(200).json({
+      productsRegistered: userProductsCount,
       today: {
         differentProducts: dailyData.differentProducts,
         totalOrders: dailyData.totalOrders,
