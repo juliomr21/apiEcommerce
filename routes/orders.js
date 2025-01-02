@@ -13,7 +13,7 @@ router.get('/', auth, async (req, res) => {
   try {
     const orders = await Order.find({ user: req.user.id })
       .populate('client', ['name', 'email', 'phone'])
-      .populate('products.product', ['name', 'price']);
+      .populate('products.product', ['name', 'price_sale']);
     res.json(orders);
   } catch (err) {
     console.error(err.message);
@@ -28,7 +28,7 @@ router.get('/:id', auth, async (req, res) => {
   try {
     const order = await Order.findOne({ _id: req.params.id, user: req.user.id })
       .populate('client', ['name', 'email', 'phone'])
-      .populate('products.product', ['name', 'price']);
+      .populate('products.product', ['name', 'price_sale']);
 
     if (!order) {
       return res.status(404).json({ msg: 'Pedido no encontrado' });
